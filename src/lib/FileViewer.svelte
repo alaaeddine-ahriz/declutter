@@ -11,15 +11,18 @@
   export let files: FileInfo[];
   export let currentIndex: number;
   export let actionHistory: Action[];
+  export let previewOpen: boolean = false;
 
   const dispatch = createEventDispatcher<{
     complete: { filesToDelete: FileInfo[]; keptCount: number };
+    openPreview: { file: FileInfo };
   }>();
 
   let keptCount = 0;
   let deletedCount = 0;
 
-  async function revealInExplorer() {
+  async function revealInExplorer(event: CustomEvent<MouseEvent>) {
+    event.detail.stopPropagation();
     if (!currentFile) return;
     try {
       await invoke("reveal_in_explorer", { path: currentFile.path });
@@ -103,6 +106,9 @@
     } else if ((event.metaKey || event.ctrlKey) && event.key === "z") {
       event.preventDefault();
       undo();
+    } else if (event.key === " ") {
+      event.preventDefault();
+      openPreview();
     }
   }
 
@@ -119,6 +125,11 @@
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
+
+  function openPreview() {
+    if (!currentFile) return;
+    dispatch("openPreview", { file: currentFile });
+  }
 </script>
 
 <div class="file-viewer">
@@ -133,37 +144,56 @@
         </div>
       </div>
 
-      <Card padding="none">
-        <div class="file-header">
-          <span class="file-name">{currentFile.name}</span>
-          <div class="file-meta">
-            <Button
-              variant="ghost"
-              size="sm"
-              on:click={revealInExplorer}
-              title="Reveal in Finder"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
+      <button class="card-button" on:click={openPreview} title="Click to open preview">
+        <Card padding="none">
+          <div class="file-header">
+            <span class="file-name">{currentFile.name}</span>
+            <div class="file-meta">
+              <Button
+                variant="ghost"
+                size="sm"
+                on:click={revealInExplorer}
+                title="Reveal in Finder"
               >
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-            </Button>
-            <Badge variant="neutral">{formatSize(currentFile.size)}</Badge>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+              </Button>
+              <Badge variant="neutral">{formatSize(currentFile.size)}</Badge>
+            </div>
           </div>
-        </div>
 
-        <div class="preview-container">
-          <Preview file={currentFile} />
-        </div>
-      </Card>
+          <div class="preview-container">
+            {#if previewOpen && currentFile.file_type === "image"}
+              <div class="preview-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                <span>Viewing in preview</span>
+              </div>
+            {:else}
+              <Preview file={currentFile} />
+            {/if}
+            {#if !previewOpen}
+              <div class="preview-hint">
+                <Kbd>Space</Kbd>
+                <span>to preview</span>
+              </div>
+            {/if}
+          </div>
+        </Card>
+      </button>
 
       <div class="actions">
         <Button variant="danger" on:click={deleteFile}>
@@ -203,6 +233,13 @@
     max-width: 560px;
     margin: 0 auto;
     width: 100%;
+  }
+
+  .card-button {
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    border-radius: var(--radius-lg);
   }
 
   .header {
@@ -257,14 +294,43 @@
   }
 
   .preview-container {
-    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 180px;
-    max-height: 280px;
+    height: 240px;
     overflow: hidden;
     background: var(--bg-primary);
+    position: relative;
+  }
+
+  .preview-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .preview-icon svg {
+    opacity: 0.5;
+  }
+
+  .preview-hint {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .card-button:hover .preview-hint {
+    opacity: 1;
   }
 
   .actions {

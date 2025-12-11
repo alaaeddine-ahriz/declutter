@@ -5,6 +5,7 @@
   import FileViewer from "./lib/FileViewer.svelte";
   import DeleteConfirm from "./lib/DeleteConfirm.svelte";
   import Summary from "./lib/Summary.svelte";
+  import PreviewPanel from "./lib/PreviewPanel.svelte";
   import Button from "./lib/ui/Button.svelte";
   import Kbd from "./lib/ui/Kbd.svelte";
 
@@ -16,6 +17,10 @@
   let result: TriageResult = { kept: 0, deleted: 0, total: 0 };
   let filesToDelete: FileInfo[] = [];
   let keptCount: number = 0;
+
+  // Preview panel state
+  let previewOpen: boolean = false;
+  let previewFile: FileInfo | null = null;
 
   function handleFolderSelected(
     event: CustomEvent<{ path: string; files: FileInfo[] }>,
@@ -38,6 +43,7 @@
   ) {
     filesToDelete = event.detail.filesToDelete;
     keptCount = event.detail.keptCount;
+    closePreview();
     appState = "confirming";
   }
 
@@ -59,6 +65,17 @@
     result = { kept: 0, deleted: 0, total: 0 };
     filesToDelete = [];
     keptCount = 0;
+    closePreview();
+  }
+
+  function handleOpenPreview(event: CustomEvent<{ file: FileInfo }>) {
+    previewFile = event.detail.file;
+    previewOpen = true;
+  }
+
+  function closePreview() {
+    previewOpen = false;
+    previewFile = null;
   }
 
   function truncatePath(path: string, maxLength: number = 50): string {
@@ -69,10 +86,19 @@
   }
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape" && appState !== "idle") {
+    if (event.key === "Escape") {
       event.preventDefault();
-      handleStartOver();
+      if (previewOpen) {
+        closePreview();
+      } else if (appState !== "idle") {
+        handleStartOver();
+      }
     }
+  }
+
+  // Update preview file when current file changes
+  $: if (previewOpen && files[currentIndex]) {
+    previewFile = files[currentIndex];
   }
 
   onMount(() => {
@@ -84,7 +110,7 @@
   });
 </script>
 
-<main class="app">
+<main class="app" class:preview-open={previewOpen}>
   {#if appState !== "idle"}
     <header class="header">
       <div class="back-btn">
@@ -119,7 +145,9 @@
         {files}
         bind:currentIndex
         bind:actionHistory
+        {previewOpen}
         on:complete={handleTriageComplete}
+        on:openPreview={handleOpenPreview}
       />
     {:else if appState === "confirming"}
       <DeleteConfirm
@@ -133,6 +161,12 @@
       <Summary {result} on:startOver={handleStartOver} />
     {/if}
   </div>
+
+  <PreviewPanel 
+    file={previewFile} 
+    isOpen={previewOpen} 
+    on:close={closePreview} 
+  />
 </main>
 
 <style>
@@ -142,14 +176,19 @@
     flex-direction: column;
     background-color: var(--bg-primary);
     color: var(--text-primary);
+    transition: margin-right var(--transition-base);
+  }
+
+  .app.preview-open {
+    margin-right: 400px;
   }
 
   .header {
-    padding: 12px 16px;
+    padding: 0 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 48px;
+    height: 48px;
     position: relative;
     width: 100%;
     border-bottom: 1px solid var(--border-subtle);
