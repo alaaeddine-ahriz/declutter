@@ -124,12 +124,11 @@
       <div class="confirmation-view">
         <h2 class="heading">Are you sure?</h2>
         <p class="description">
-          This will permanently delete {filesToDelete.length} file{filesToDelete.length !==
-          1
+          This will move {filesToDelete.length} file{filesToDelete.length !== 1
             ? "s"
-            : ""}.
+            : ""} to the trash.
           <br />
-          This action cannot be undone.
+          You can restore them later if needed.
         </p>
 
         <div class="actions">
@@ -149,7 +148,7 @@
             {#if isDeleting}
               Deleting...
             {:else}
-              Yes, Delete
+              Yes, Move to Trash
               <Kbd>⏎</Kbd>
             {/if}
           </Button>
@@ -222,7 +221,7 @@
             Done
             <Kbd>⏎</Kbd>
           {:else}
-            Delete {filesToDelete.length}
+            Trash {filesToDelete.length}
             <Kbd>⏎</Kbd>
           {/if}
         </Button>

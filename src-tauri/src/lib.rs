@@ -186,7 +186,7 @@ fn delete_files(file_paths: Vec<String>) -> DeleteResult {
             continue;
         }
         
-        match fs::remove_file(path) {
+        match trash::delete(path) {
             Ok(_) => success.push(file_path),
             Err(e) => failed.push((file_path, e.to_string())),
         }
