@@ -25,6 +25,7 @@ export interface TriageResult {
   kept: number;
   deleted: number;
   total: number;
+  savedSize?: number;
 }
 
 export interface DeleteResult {

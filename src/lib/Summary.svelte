@@ -28,6 +28,12 @@
   onDestroy(() => {
     window.removeEventListener("keydown", handleKeydown);
   });
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
 </script>
 
 <div class="summary">
@@ -55,11 +61,16 @@
         <span class="stat-value">{result.kept}</span>
         <span class="stat-label">kept</span>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat">
         <span class="stat-value">{result.deleted}</span>
         <span class="stat-label">deleted</span>
       </div>
+      {#if result.savedSize}
+        <div class="stat">
+          <span class="stat-value">{formatSize(result.savedSize)}</span>
+          <span class="stat-label">saved</span>
+        </div>
+      {/if}
     </div>
 
     <p class="note">Files moved to trash</p>
@@ -131,10 +142,9 @@
     color: var(--text-muted);
   }
 
-  .stat-divider {
-    width: 1px;
-    height: 40px;
-    background: var(--border-color);
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
   }
 
   .note {

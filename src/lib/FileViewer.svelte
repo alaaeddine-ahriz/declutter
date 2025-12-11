@@ -20,6 +20,7 @@
 
   let keptCount = 0;
   let deletedCount = 0;
+  let deletedSize = 0;
 
   async function revealInExplorer(event: CustomEvent<MouseEvent>) {
     event.detail.stopPropagation();
@@ -63,6 +64,7 @@
     ];
 
     deletedCount++;
+    deletedSize += currentFile.size;
     advance();
   }
 
@@ -74,6 +76,7 @@
 
     if (lastAction.type === "delete") {
       deletedCount--;
+      deletedSize -= files[lastAction.fileIndex].size;
     } else {
       keptCount--;
     }
@@ -85,15 +88,19 @@
     if (currentIndex < files.length - 1) {
       currentIndex++;
     } else {
-      const filesToDelete = actionHistory
-        .filter((action) => action.type === "delete")
-        .map((action) => files[action.fileIndex]);
-
-      dispatch("complete", {
-        filesToDelete,
-        keptCount,
-      });
+      stopEarly();
     }
+  }
+
+  function stopEarly() {
+    const filesToDelete = actionHistory
+      .filter((action) => action.type === "delete")
+      .map((action) => files[action.fileIndex]);
+
+    dispatch("complete", {
+      filesToDelete,
+      keptCount,
+    });
   }
 
   function handleKeydown(event: KeyboardEvent) {
@@ -141,10 +148,18 @@
           <span class="stat">{keptCount} kept</span>
           <span class="stat-sep">·</span>
           <span class="stat">{deletedCount} deleted</span>
+          {#if deletedSize > 0}
+            <span class="stat-sep">·</span>
+            <span class="stat">{formatSize(deletedSize)} saved</span>
+          {/if}
         </div>
       </div>
 
-      <button class="card-button" on:click={openPreview} title="Click to open preview">
+      <button
+        class="card-button"
+        on:click={openPreview}
+        title="Click to open preview"
+      >
         <Card padding="none">
           <div class="file-header">
             <span class="file-name">{currentFile.name}</span>
@@ -163,7 +178,9 @@
                   stroke="currentColor"
                   stroke-width="2"
                 >
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <path
+                    d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                  />
                   <polyline points="15 3 21 3 21 9" />
                   <line x1="10" y1="14" x2="21" y2="3" />
                 </svg>
@@ -175,7 +192,14 @@
           <div class="preview-container">
             {#if previewOpen && currentFile.file_type === "image"}
               <div class="preview-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                   <circle cx="8.5" cy="8.5" r="1.5" />
                   <polyline points="21 15 16 10 5 21" />
@@ -213,6 +237,14 @@
           <Kbd>→</Kbd>
         </Button>
       </div>
+
+      {#if deletedCount > 0}
+        <div class="footer-actions">
+          <Button variant="ghost" size="sm" on:click={stopEarly}>
+            Stop & Review ({deletedCount})
+          </Button>
+        </div>
+      {/if}
     {/if}
   </div>
 </div>
@@ -339,5 +371,11 @@
     justify-content: center;
     margin-top: 16px;
     gap: 12px;
+  }
+
+  .footer-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
   }
 </style>

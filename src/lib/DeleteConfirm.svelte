@@ -42,6 +42,7 @@
         kept: keptCount + removedCount,
         deleted: 0,
         total: totalCount,
+        savedSize: 0,
       });
       return;
     }
@@ -66,10 +67,16 @@
         deleteError = `Failed to delete ${result.failed.length} file(s):\n${failedFiles.join("\n")}`;
         showConfirmDialog = false; // Go back to review on error
       } else {
+        const savedSize = result.success.reduce((total, path) => {
+          const file = filesToDelete.find((f) => f.path === path);
+          return total + (file ? file.size : 0);
+        }, 0);
+
         dispatch("complete", {
           kept: keptCount + removedCount + result.failed.length,
           deleted: result.success.length,
           total: totalCount,
+          savedSize,
         });
       }
     } catch (e) {

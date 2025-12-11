@@ -62,7 +62,7 @@
     files = [];
     currentIndex = 0;
     actionHistory = [];
-    result = { kept: 0, deleted: 0, total: 0 };
+    result = { kept: 0, deleted: 0, total: 0, savedSize: 0 };
     filesToDelete = [];
     keptCount = 0;
     closePreview();
@@ -162,10 +162,10 @@
     {/if}
   </div>
 
-  <PreviewPanel 
-    file={previewFile} 
-    isOpen={previewOpen} 
-    on:close={closePreview} 
+  <PreviewPanel
+    file={previewFile}
+    isOpen={previewOpen}
+    on:close={closePreview}
   />
 </main>
 
