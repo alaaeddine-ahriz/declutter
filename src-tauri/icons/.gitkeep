@@ -1,0 +1,16 @@
+# Icon files should be generated using:
+# npm run tauri icon <path-to-source-image>
+#
+# Required files:
+# - 32x32.png
+# - 128x128.png
+# - 128x128@2x.png
+# - icon.icns (macOS)
+# - icon.ico (Windows)
+#
+# For development, you can create placeholder images or use:
+# https://tauri.app/v1/guides/features/icons
+
+
+
+

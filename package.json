@@ -1,0 +1,28 @@
+{
+  "name": "folder-cleanup-swipe",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.0",
+    "@tauri-apps/cli": "^1.5.11",
+    "@tsconfig/svelte": "^5.0.4",
+    "svelte": "^4.2.12",
+    "svelte-check": "^3.6.9",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.5.6"
+  }
+}
+
+
+
+
