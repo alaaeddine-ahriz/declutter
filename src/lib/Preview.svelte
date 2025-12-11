@@ -43,7 +43,14 @@
     <img src={assetUrl} alt={file.name} class="image-preview" />
   {:else if file.file_type === "pdf"}
     <div class="fallback">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
         <polyline points="14 2 14 8 20 8" />
       </svg>
@@ -53,11 +60,19 @@
     {#if error}
       <div class="fallback"><span>{error}</span></div>
     {:else}
-      <pre class="text-preview">{textContent}{#if textContent.length >= 2000}...{/if}</pre>
+      <pre
+        class="text-preview">{textContent}{#if textContent.length >= 2000}...{/if}</pre>
     {/if}
   {:else}
     <div class="fallback">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
         <polyline points="14 2 14 8 20 8" />
       </svg>
@@ -73,18 +88,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-    overflow: auto;
+    /* padding: 1rem; -- Removed padding to let image fill the box */
+    overflow: hidden; /* Changed from auto to hidden for cleaner look with images */
   }
 
-  .loading {
-    color: var(--text-muted);
-    font-size: 0.75rem;
-  }
+  /* ... */
 
   .image-preview {
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
   }
 
@@ -111,4 +123,3 @@
     margin: 0;
   }
 </style>
-

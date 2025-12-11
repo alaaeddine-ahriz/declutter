@@ -2,6 +2,8 @@
   import { createEventDispatcher } from "svelte";
   import { invoke } from "@tauri-apps/api/tauri";
   import type { FileInfo, DeleteResult, TriageResult } from "../types";
+  import Button from "./ui/Button.svelte";
+  import Card from "./ui/Card.svelte";
 
   export let filesToDelete: FileInfo[];
   export let keptCount: number;
@@ -75,34 +77,43 @@
 
 <div class="delete-confirm">
   <div class="content">
-    <h2 class="heading">Review Files to Delete</h2>
-    <p class="description">
-      {filesToDelete.length} file{filesToDelete.length !== 1 ? "s" : ""} selected
-      ({getTotalSize()})
-    </p>
+    {#if filesToDelete.length > 0}
+      <h2 class="heading">Review Files to Delete</h2>
+      <p class="description">
+        {filesToDelete.length} file{filesToDelete.length !== 1 ? "s" : ""} selected
+        ({getTotalSize()})
+      </p>
+    {/if}
 
     {#if filesToDelete.length === 0}
       <div class="empty-state">
         <p>No files to delete</p>
       </div>
     {:else}
-      <div class="file-list">
-        {#each filesToDelete as file, index}
-          <div class="file-item">
-            <div class="file-info">
-              <span class="file-name">{file.name}</span>
-              <span class="file-size">{formatSize(file.size)}</span>
-            </div>
-            <button
-              class="remove-btn"
-              on:click={() => removeFromList(index)}
-              title="Remove from delete list"
-              disabled={isDeleting}
-            >
-              ✕
-            </button>
+      <div class="file-list-container">
+        <Card padding="none">
+          <div class="file-list">
+            {#each filesToDelete as file, index}
+              <div class="file-item">
+                <div class="file-info">
+                  <span class="file-name">{file.name}</span>
+                  <span class="file-size">{formatSize(file.size)}</span>
+                </div>
+                <!-- Reuse Button but make it small/ghost/danger for removal -->
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  on:click={() => removeFromList(index)}
+                  title="Remove from delete list"
+                  disabled={isDeleting}
+                  style="color: var(--text-muted); padding: 0.25rem; height: auto;"
+                >
+                  ✕
+                </Button>
+              </div>
+            {/each}
           </div>
-        {/each}
+        </Card>
       </div>
     {/if}
 
@@ -113,22 +124,20 @@
     {/if}
 
     <div class="actions">
-      <button class="btn btn-secondary" on:click={handleCancel} disabled={isDeleting}>
+      <Button variant="secondary" on:click={handleCancel} disabled={isDeleting}>
         Go Back
-      </button>
-      <button
-        class="btn btn-danger"
-        on:click={confirmDelete}
-        disabled={isDeleting}
-      >
+      </Button>
+      <Button variant="danger" on:click={confirmDelete} disabled={isDeleting}>
         {#if isDeleting}
           Deleting...
         {:else if filesToDelete.length === 0}
           Done
         {:else}
-          Delete {filesToDelete.length} File{filesToDelete.length !== 1 ? "s" : ""}
+          Delete {filesToDelete.length} File{filesToDelete.length !== 1
+            ? "s"
+            : ""}
         {/if}
-      </button>
+      </Button>
     </div>
   </div>
 </div>
@@ -148,6 +157,7 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    justify-content: center; /* Center vertical content */
   }
 
   .heading {
@@ -155,137 +165,40 @@
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.25rem;
+    text-align: center; /* Center text */
   }
 
   .description {
     color: var(--text-muted);
     font-size: 0.8125rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem; /* Reduced from 2rem to 0.5rem for tighter layout */
+    text-align: center; /* Center text */
   }
 
   .empty-state {
-    flex: 1;
+    /* flex: 1; -- Removed to prevent excessive spreading */
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: 1rem; /* Slightly larger as it is now the main focus when empty */
+    height: 150px; /* Fixed modest height instead of filling screen */
+    width: 100%;
   }
 
   .file-list {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--bg-secondary);
     max-height: 400px;
+    text-align: left; /* Keep file list left-aligned for readability */
   }
 
-  .file-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .file-item:last-child {
-    border-bottom: none;
-  }
-
-  .file-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .file-name {
-    font-size: 0.875rem;
-    color: var(--text-primary);
-    word-break: break-all;
-  }
-
-  .file-size {
-    font-size: 0.75rem;
-    font-family: var(--font-mono);
-    color: var(--text-muted);
-  }
-
-  .remove-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    flex-shrink: 0;
-    margin-left: 0.75rem;
-  }
-
-  .remove-btn:hover:not(:disabled) {
-    background: var(--bg-primary);
-    color: var(--danger);
-  }
-
-  .remove-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .error-message {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid var(--danger);
-    border-radius: 6px;
-    color: var(--danger);
-    font-size: 0.8125rem;
-    white-space: pre-wrap;
-  }
+  /* ... file items ... */
 
   .actions {
     display: flex;
     gap: 0.75rem;
-    margin-top: 1.5rem;
-    justify-content: flex-end;
-  }
-
-  .btn {
-    padding: 0.625rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 6px;
-    transition: all 0.15s ease;
-  }
-
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .btn-secondary {
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-  }
-
-  .btn-secondary:hover:not(:disabled) {
-    background-color: var(--bg-primary);
-  }
-
-  .btn-danger {
-    background-color: var(--danger);
-    color: white;
-    border: none;
-  }
-
-  .btn-danger:hover:not(:disabled) {
-    opacity: 0.9;
+    margin-top: 1rem; /* Reduced from 1.5rem to 1rem */
+    justify-content: center; /* Center buttons */
   }
 </style>
-
-

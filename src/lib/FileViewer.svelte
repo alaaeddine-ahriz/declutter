@@ -3,6 +3,9 @@
   import { invoke } from "@tauri-apps/api/tauri";
   import type { FileInfo, Action } from "../types";
   import Preview from "./Preview.svelte";
+  import Button from "./ui/Button.svelte";
+  import Card from "./ui/Card.svelte";
+  import Badge from "./ui/Badge.svelte";
 
   export let files: FileInfo[];
   export let currentIndex: number;
@@ -26,7 +29,7 @@
 
   $: currentFile = files[currentIndex] || null;
   $: progress = `${currentIndex + 1} of ${files.length}`;
-  $: progressPercent = ((currentIndex) / files.length) * 100;
+  $: progressPercent = (currentIndex / files.length) * 100;
 
   function keepFile() {
     if (!currentFile) return;
@@ -39,7 +42,7 @@
         originalPath: currentFile.path,
       },
     ];
-    
+
     keptCount++;
     advance();
   }
@@ -55,7 +58,7 @@
         originalPath: currentFile.path,
       },
     ];
-    
+
     deletedCount++;
     advance();
   }
@@ -121,52 +124,62 @@
 </script>
 
 <div class="file-viewer">
-  <div class="progress-bar">
-    <div class="progress-fill" style="width: {progressPercent}%"></div>
-  </div>
-
   <div class="main-content">
     {#if currentFile}
       <div class="header">
         <span class="progress-text">{progress}</span>
         <div class="stats-inline">
-          <span class="kept">{keptCount} kept</span>
-          <span class="deleted">{deletedCount} deleted</span>
+          <Badge variant="success">{keptCount} kept</Badge>
+          <Badge variant="danger">{deletedCount} deleted</Badge>
         </div>
       </div>
 
-      <div class="file-card">
-        <div class="file-info">
+      <Card padding="none">
+        <div class="file-info-header">
           <span class="file-name">{currentFile.name}</span>
           <div class="file-meta">
-            <button class="reveal-btn" on:click={revealInExplorer} title="Show in Finder">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
+            <Button
+              variant="ghost"
+              size="sm"
+              on:click={revealInExplorer}
+              title="Show in Finder"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
-            </button>
-            <span class="file-size">{formatSize(currentFile.size)}</span>
+            </Button>
+            <Badge variant="neutral">{formatSize(currentFile.size)}</Badge>
           </div>
         </div>
 
         <div class="preview-container">
           <Preview file={currentFile} />
         </div>
-      </div>
+      </Card>
 
       <div class="actions">
-        <button class="action-btn delete-btn" on:click={deleteFile}>
-          <kbd>←</kbd> Delete
-        </button>
-        
+        <Button variant="danger" on:click={deleteFile}>
+          <kbd style="margin-right: 0.5rem">←</kbd> Delete
+        </Button>
+
         {#if actionHistory.length > 0}
-          <button class="undo-btn" on:click={undo}>Undo</button>
+          <Button variant="ghost" on:click={undo}>Undo</Button>
         {/if}
 
-        <button class="action-btn keep-btn" on:click={keepFile}>
-          Keep <kbd>→</kbd>
-        </button>
+        <Button variant="success" on:click={keepFile}>
+          Keep <kbd style="margin-left: 0.5rem">→</kbd>
+        </Button>
       </div>
     {/if}
   </div>
@@ -179,21 +192,11 @@
     flex-direction: column;
   }
 
-  .progress-bar {
-    height: 2px;
-    background-color: var(--border-color);
-  }
-
-  .progress-fill {
-    height: 100%;
-    background-color: var(--accent);
-    transition: width 0.2s ease;
-  }
-
   .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     padding: 1rem 1.5rem;
     max-width: 600px;
     margin: 0 auto;
@@ -215,29 +218,10 @@
 
   .stats-inline {
     display: flex;
-    gap: 1rem;
-    font-size: 0.75rem;
+    gap: 0.5rem;
   }
 
-  .stats-inline .kept {
-    color: var(--success);
-  }
-
-  .stats-inline .deleted {
-    color: var(--danger);
-  }
-
-  .file-card {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--bg-secondary);
-  }
-
-  .file-info {
+  .file-info-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -261,31 +245,6 @@
     gap: 0.5rem;
   }
 
-  .reveal-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.375rem;
-    border-radius: 4px;
-    color: var(--text-muted);
-    transition: all 0.15s ease;
-  }
-
-  .reveal-btn:hover {
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-  }
-
-  .file-size {
-    font-size: 0.75rem;
-    font-family: var(--font-mono);
-    color: var(--text-secondary);
-    background: var(--bg-secondary);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    white-space: nowrap;
-  }
-
   .preview-container {
     flex: 1;
     display: flex;
@@ -299,45 +258,9 @@
   .actions {
     display: flex;
     align-items: center;
+    justify-content: space-between; /* Spread them out or keep centered? minimalistic usually groups them. Let's keep centered but with more gap */
     justify-content: center;
-    margin-top: 1rem;
-    gap: 0.5rem;
-  }
-
-  .action-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    transition: all 0.15s ease;
-  }
-
-  .delete-btn:hover {
-    border-color: var(--danger);
-    color: var(--danger);
-  }
-
-  .keep-btn:hover {
-    border-color: var(--success);
-    color: var(--success);
-  }
-
-  .undo-btn {
-    padding: 0.625rem 1rem;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    border-radius: 6px;
-  }
-
-  .undo-btn:hover {
-    color: var(--text-primary);
-    background: var(--bg-secondary);
+    margin-top: 1.5rem;
+    gap: 1rem;
   }
 </style>
-

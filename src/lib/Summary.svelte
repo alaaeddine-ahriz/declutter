@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import type { TriageResult } from "../types";
+  import Button from "./ui/Button.svelte";
 
   export let result: TriageResult;
 
@@ -31,9 +32,7 @@
 
     <p class="note">Files have been permanently deleted</p>
 
-    <button class="btn btn-primary" on:click={handleStartOver}>
-      Start Over
-    </button>
+    <Button variant="primary" on:click={handleStartOver}>Start Over</Button>
   </div>
 </div>
 
@@ -100,6 +99,9 @@
     color: var(--text-muted);
     margin-bottom: 1.5rem;
   }
-
+  .note {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
 </style>
-

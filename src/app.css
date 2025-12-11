@@ -1,15 +1,37 @@
 :root {
-  --bg-primary: #fafafa;
+  /* Slate & Sky Palette */
+  --bg-primary: #f8fafc;
+  /* Slate 50 */
   --bg-secondary: #ffffff;
-  --text-primary: #171717;
-  --text-secondary: #525252;
-  --text-muted: #a3a3a3;
-  --border-color: #e5e5e5;
-  --accent: #171717;
-  --accent-hover: #404040;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* White */
+  --bg-hover: #f1f5f9;
+  /* Slate 100 */
+
+  --text-primary: #0f172a;
+  /* Slate 900 */
+  --text-secondary: #475569;
+  /* Slate 600 */
+  --text-muted: #94a3b8;
+  /* Slate 400 */
+
+  --border-color: #e2e8f0;
+  /* Slate 200 */
+
+  /* Accent: Sky */
+  --accent: #0ea5e9;
+  /* Sky 500 */
+  --accent-hover: #0284c7;
+  /* Sky 600 */
+
+  /* Semantic Colors */
+  --primary: var(--accent);
+  --primary-hover: var(--accent-hover);
+  --success: #4ade80;
+  --success-hover: #3cc972;
+  --danger: #f87171;
+  --danger-hover: #ef5555;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
 }
 
@@ -19,7 +41,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   font-family: var(--font-sans);
   font-size: 16px;
@@ -93,11 +116,8 @@ kbd {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   background-color: var(--bg-primary);
+  color: var(--text-primary);
+  /* Ensure text is visible on colored buttons */
   border: 1px solid var(--border-color);
   border-radius: 4px;
   box-shadow: 0 1px 0 var(--border-color);
-}
-
-
-
-
