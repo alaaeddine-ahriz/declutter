@@ -18,6 +18,7 @@
   let isDeleting = false;
   let deleteError: string | null = null;
   let removedCount = 0;
+  let showConfirmDialog = false;
 
   function removeFromList(index: number) {
     filesToDelete = filesToDelete.filter((_, i) => i !== index);
@@ -35,7 +36,7 @@
     return formatSize(total);
   }
 
-  async function confirmDelete() {
+  function handleMainAction() {
     if (filesToDelete.length === 0) {
       dispatch("complete", {
         kept: keptCount + removedCount,
@@ -44,7 +45,10 @@
       });
       return;
     }
+    showConfirmDialog = true;
+  }
 
+  async function executeDelete() {
     isDeleting = true;
     deleteError = null;
 
@@ -60,27 +64,48 @@
           return `${name}: ${err}`;
         });
         deleteError = `Failed to delete ${result.failed.length} file(s):\n${failedFiles.join("\n")}`;
+        showConfirmDialog = false; // Go back to review on error
+      } else {
+        dispatch("complete", {
+          kept: keptCount + removedCount + result.failed.length,
+          deleted: result.success.length,
+          total: totalCount,
+        });
       }
-
-      dispatch("complete", {
-        kept: keptCount + removedCount + result.failed.length,
-        deleted: result.success.length,
-        total: totalCount,
-      });
     } catch (e) {
       deleteError = `Delete failed: ${e}`;
       isDeleting = false;
+      showConfirmDialog = false;
     }
   }
 
   function handleCancel() {
-    dispatch("cancel");
+    if (showConfirmDialog) {
+      showConfirmDialog = false;
+    } else {
+      dispatch("cancel");
+    }
   }
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter" && !isDeleting) {
-      event.preventDefault();
-      confirmDelete();
+    if (isDeleting) return;
+
+    if (showConfirmDialog) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        executeDelete();
+      } else if (event.key === "Escape" || event.key === "Backspace") {
+        event.preventDefault();
+        showConfirmDialog = false;
+      }
+    } else {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleMainAction();
+      } else if (event.key === "Backspace") {
+        event.preventDefault();
+        handleCancel();
+      }
     }
   }
 
@@ -95,67 +120,114 @@
 
 <div class="delete-confirm">
   <div class="content">
-    {#if filesToDelete.length > 0}
-      <h2 class="heading">Review deletions</h2>
-      <p class="description">
-        {filesToDelete.length} file{filesToDelete.length !== 1 ? "s" : ""} · {getTotalSize()}
-      </p>
-    {/if}
+    {#if showConfirmDialog}
+      <div class="confirmation-view">
+        <h2 class="heading">Are you sure?</h2>
+        <p class="description">
+          This will permanently delete {filesToDelete.length} file{filesToDelete.length !==
+          1
+            ? "s"
+            : ""}.
+          <br />
+          This action cannot be undone.
+        </p>
 
-    {#if filesToDelete.length === 0}
-      <div class="empty-state">
-        <p>No files to delete</p>
+        <div class="actions">
+          <Button
+            variant="outline"
+            on:click={() => (showConfirmDialog = false)}
+            disabled={isDeleting}
+          >
+            Cancel
+            <Kbd>Esc</Kbd>
+          </Button>
+          <Button
+            variant="danger"
+            on:click={executeDelete}
+            disabled={isDeleting}
+          >
+            {#if isDeleting}
+              Deleting...
+            {:else}
+              Yes, Delete
+              <Kbd>⏎</Kbd>
+            {/if}
+          </Button>
+        </div>
       </div>
     {:else}
-      <div class="file-list-container">
-        <Card padding="none">
-          <div class="file-list">
-            {#each filesToDelete as file, index}
-              <div class="file-item">
-                <div class="file-info">
-                  <span class="file-name">{file.name}</span>
-                  <span class="file-size">{formatSize(file.size)}</span>
+      {#if filesToDelete.length > 0}
+        <h2 class="heading">Review deletions</h2>
+        <p class="description">
+          {filesToDelete.length} file{filesToDelete.length !== 1 ? "s" : ""} · {getTotalSize()}
+        </p>
+      {/if}
+
+      {#if filesToDelete.length === 0}
+        <div class="empty-state">
+          <p>No files to delete</p>
+        </div>
+      {:else}
+        <div class="file-list-container">
+          <Card padding="none">
+            <div class="file-list">
+              {#each filesToDelete as file, index}
+                <div class="file-item">
+                  <div class="file-info">
+                    <span class="file-name">{file.name}</span>
+                    <span class="file-size">{formatSize(file.size)}</span>
+                  </div>
+                  <button
+                    class="remove-btn"
+                    on:click={() => removeFromList(index)}
+                    title="Remove from list"
+                    disabled={isDeleting}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
                 </div>
-                <button
-                  class="remove-btn"
-                  on:click={() => removeFromList(index)}
-                  title="Remove from list"
-                  disabled={isDeleting}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-            {/each}
-          </div>
-        </Card>
+              {/each}
+            </div>
+          </Card>
+        </div>
+      {/if}
+
+      {#if deleteError}
+        <div class="error-message">
+          {deleteError}
+        </div>
+      {/if}
+
+      <div class="actions">
+        <Button variant="outline" on:click={handleCancel} disabled={isDeleting}>
+          Go Back
+          <Kbd>⌫</Kbd>
+        </Button>
+        <Button
+          variant="danger"
+          on:click={handleMainAction}
+          disabled={isDeleting}
+        >
+          {#if filesToDelete.length === 0}
+            Done
+            <Kbd>⏎</Kbd>
+          {:else}
+            Delete {filesToDelete.length}
+            <Kbd>⏎</Kbd>
+          {/if}
+        </Button>
       </div>
     {/if}
-
-    {#if deleteError}
-      <div class="error-message">
-        {deleteError}
-      </div>
-    {/if}
-
-    <div class="actions">
-      <Button variant="outline" on:click={handleCancel} disabled={isDeleting}>
-        Go Back
-      </Button>
-      <Button variant="danger" on:click={confirmDelete} disabled={isDeleting}>
-        {#if isDeleting}
-          Deleting...
-        {:else if filesToDelete.length === 0}
-          Done
-          <Kbd>⏎</Kbd>
-        {:else}
-          Delete {filesToDelete.length}
-          <Kbd>⏎</Kbd>
-        {/if}
-      </Button>
-    </div>
   </div>
 </div>
 
