@@ -1,38 +1,43 @@
 :root {
-  /* Slate & Sky Palette */
-  --bg-primary: #f8fafc;
-  /* Slate 50 */
-  --bg-secondary: #ffffff;
-  /* White */
-  --bg-hover: #f1f5f9;
-  /* Slate 100 */
+  /* Dark Mode Base */
+  --bg-primary: #171717;
+  --bg-secondary: #1a1a1c;
+  --bg-tertiary:  #202023;
+  --bg-elevated:  #26262a;
+  --bg-hover:     #2d2d31;
 
-  --text-primary: #0f172a;
-  /* Slate 900 */
-  --text-secondary: #475569;
-  /* Slate 600 */
-  --text-muted: #94a3b8;
-  /* Slate 400 */
+  /* Text Colors */
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
 
-  --border-color: #e2e8f0;
-  /* Slate 200 */
+  /* Border */
+  --border-color: #27272a;
+  --border-subtle: #1f1f23;
 
-  /* Accent: Sky */
-  --accent: #0ea5e9;
-  /* Sky 500 */
-  --accent-hover: #0284c7;
-  /* Sky 600 */
+  /* Purple Accent - Single Accent Color */
+  --accent: #601F9E;
+  --accent-hover: #7428B8;
+  --accent-muted: #4E1A80;
+  --accent-subtle: rgba(96, 31, 158, 0.2);
+  --accent-text: #A368D4;
 
-  /* Semantic Colors */
+  /* Semantic (all purple-based) */
   --primary: var(--accent);
   --primary-hover: var(--accent-hover);
-  --success: #4ade80;
-  --success-hover: #3cc972;
-  --danger: #f87171;
-  --danger-hover: #ef5555;
 
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  /* System Fonts Only */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Spacing */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Transitions */
+  --transition-fast: 120ms ease;
+  --transition-base: 180ms ease;
 }
 
 * {
@@ -45,7 +50,7 @@ html,
 body {
   height: 100%;
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--text-primary);
   background-color: var(--bg-primary);
@@ -59,65 +64,58 @@ body {
   flex-direction: column;
 }
 
+/* Reset button styles */
 button {
   font-family: inherit;
   font-size: inherit;
   cursor: pointer;
   border: none;
   background: none;
+  color: inherit;
 }
 
 button:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent);
   outline-offset: 2px;
 }
 
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  width: 100%;
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.btn {
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+/* Keyboard hint */
+kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border-radius: 6px;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.btn-primary {
-  background-color: var(--accent);
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: var(--accent-hover);
-}
-
-.btn-secondary {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-  background-color: var(--bg-primary);
-  border-color: var(--text-muted);
-}
-
-kbd {
-  display: inline-block;
-  padding: 0.2rem 0.5rem;
+  min-width: 20px;
+  padding: 2px 6px;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  /* Ensure text is visible on colored buttons */
+  font-size: 11px;
+  font-weight: 500;
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  box-shadow: 0 1px 0 var(--border-color);
+  border-radius: var(--radius-sm);
+}

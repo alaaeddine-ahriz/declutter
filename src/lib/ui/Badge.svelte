@@ -1,6 +1,5 @@
 <script lang="ts">
-    export let variant: "neutral" | "success" | "danger" | "warning" | "info" =
-        "neutral";
+    export let variant: "neutral" | "accent" | "muted" = "neutral";
 </script>
 
 <span class="badge variant-{variant}">
@@ -11,41 +10,29 @@
     .badge {
         display: inline-flex;
         align-items: center;
-        padding: 0.25rem 0.625rem;
-        font-size: 0.75rem;
+        padding: 3px 8px;
+        font-size: 11px;
         font-weight: 500;
         line-height: 1;
-        border-radius: 9999px;
+        border-radius: var(--radius-sm);
         font-family: var(--font-mono);
     }
 
     .variant-neutral {
-        background-color: var(--bg-secondary);
+        background-color: var(--bg-tertiary);
         color: var(--text-secondary);
         border: 1px solid var(--border-color);
     }
 
-    .variant-success {
-        background-color: #dcfce7; /* green-100 */
-        color: #166534; /* green-800 */
-        border: 1px solid #bbf7d0;
+    .variant-accent {
+        background-color: var(--accent-subtle);
+        color: var(--accent-text);
+        border: 1px solid transparent;
     }
 
-    .variant-danger {
-        background-color: #fee2e2; /* red-100 */
-        color: #991b1b; /* red-800 */
-        border: 1px solid #fecaca;
-    }
-
-    .variant-warning {
-        background-color: #fef3c7; /* amber-100 */
-        color: #92400e; /* amber-800 */
-        border: 1px solid #fde68a;
-    }
-
-    .variant-info {
-        background-color: #e0f2fe; /* sky-100 */
-        color: #075985; /* sky-800 */
-        border: 1px solid #bae6fd;
+    .variant-muted {
+        background-color: transparent;
+        color: var(--text-muted);
+        border: 1px solid var(--border-color);
     }
 </style>

@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { onMount, onDestroy } from "svelte";
   import type { AppState, FileInfo, Action, TriageResult } from "./types";
   import FolderSelect from "./lib/FolderSelect.svelte";
   import FileViewer from "./lib/FileViewer.svelte";
   import DeleteConfirm from "./lib/DeleteConfirm.svelte";
   import Summary from "./lib/Summary.svelte";
   import Button from "./lib/ui/Button.svelte";
+  import Kbd from "./lib/ui/Kbd.svelte";
 
   let appState: AppState = "idle";
   let folderPath: string = "";
@@ -40,7 +42,6 @@
   }
 
   function handleDeleteCancel() {
-    // Go back to triaging - user can undo and continue
     appState = "triaging";
   }
 
@@ -59,15 +60,36 @@
     filesToDelete = [];
     keptCount = 0;
   }
+
+  function truncatePath(path: string, maxLength: number = 50): string {
+    if (path.length <= maxLength) return path;
+    const parts = path.split("/");
+    if (parts.length <= 3) return path;
+    return `.../${parts.slice(-3).join("/")}`;
+  }
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape" && appState !== "idle") {
+      event.preventDefault();
+      handleStartOver();
+    }
+  }
+
+  onMount(() => {
+    window.addEventListener("keydown", handleKeydown);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener("keydown", handleKeydown);
+  });
 </script>
 
 <main class="app">
   {#if appState !== "idle"}
     <header class="header">
-      <div class="back-btn-wrapper">
+      <div class="back-btn">
         <Button variant="ghost" size="sm" on:click={handleStartOver}>
           <svg
-            xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"
             viewBox="0 0 24 24"
@@ -75,13 +97,16 @@
             stroke="currentColor"
             stroke-width="2"
             stroke-linecap="round"
-            stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg
+            stroke-linejoin="round"
           >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
           Back
+          <Kbd>Esc</Kbd>
         </Button>
       </div>
       {#if appState === "triaging"}
-        <p class="subtitle">{folderPath}</p>
+        <span class="path">{truncatePath(folderPath)}</span>
       {/if}
     </header>
   {/if}
@@ -120,37 +145,31 @@
   }
 
   .header {
-    padding: 1rem 2rem;
+    padding: 12px 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 4rem; /* Specific height to accommodate button */
+    min-height: 48px;
     position: relative;
     width: 100%;
+    border-bottom: 1px solid var(--border-subtle);
   }
 
-  .back-btn-wrapper {
+  .back-btn {
     position: absolute;
-    left: 1rem;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
   }
 
-  /* .title removed */
-
-  .subtitle {
-    font-size: 0.875rem;
+  .path {
+    font-size: 12px;
     color: var(--text-muted);
-    margin-top: 0.5rem;
     font-family: var(--font-mono);
-    max-width: 600px;
+    max-width: 400px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    background-color: var(--bg-secondary);
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    border: 1px solid var(--border-color);
   }
 
   .content {

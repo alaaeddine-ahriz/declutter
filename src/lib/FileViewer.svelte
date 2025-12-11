@@ -6,6 +6,7 @@
   import Button from "./ui/Button.svelte";
   import Card from "./ui/Card.svelte";
   import Badge from "./ui/Badge.svelte";
+  import Kbd from "./ui/Kbd.svelte";
 
   export let files: FileInfo[];
   export let currentIndex: number;
@@ -28,8 +29,7 @@
   }
 
   $: currentFile = files[currentIndex] || null;
-  $: progress = `${currentIndex + 1} of ${files.length}`;
-  $: progressPercent = (currentIndex / files.length) * 100;
+  $: progress = `${currentIndex + 1}/${files.length}`;
 
   function keepFile() {
     if (!currentFile) return;
@@ -75,7 +75,6 @@
       keptCount--;
     }
 
-    // Go back to the previous file
     currentIndex = lastAction.fileIndex;
   }
 
@@ -83,7 +82,6 @@
     if (currentIndex < files.length - 1) {
       currentIndex++;
     } else {
-      // Collect all files marked for deletion
       const filesToDelete = actionHistory
         .filter((action) => action.type === "delete")
         .map((action) => files[action.fileIndex]);
@@ -102,7 +100,7 @@
     } else if (event.key === "ArrowLeft") {
       event.preventDefault();
       deleteFile();
-    } else if (event.key === "Backspace") {
+    } else if ((event.metaKey || event.ctrlKey) && event.key === "z") {
       event.preventDefault();
       undo();
     }
@@ -127,22 +125,23 @@
   <div class="main-content">
     {#if currentFile}
       <div class="header">
-        <span class="progress-text">{progress}</span>
-        <div class="stats-inline">
-          <Badge variant="success">{keptCount} kept</Badge>
-          <Badge variant="danger">{deletedCount} deleted</Badge>
+        <span class="progress">{progress}</span>
+        <div class="stats">
+          <span class="stat">{keptCount} kept</span>
+          <span class="stat-sep">·</span>
+          <span class="stat">{deletedCount} deleted</span>
         </div>
       </div>
 
       <Card padding="none">
-        <div class="file-info-header">
+        <div class="file-header">
           <span class="file-name">{currentFile.name}</span>
           <div class="file-meta">
             <Button
               variant="ghost"
               size="sm"
               on:click={revealInExplorer}
-              title="Show in Finder"
+              title="Reveal in Finder"
             >
               <svg
                 width="14"
@@ -152,9 +151,7 @@
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <path
-                  d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
-                />
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
@@ -170,15 +167,20 @@
 
       <div class="actions">
         <Button variant="danger" on:click={deleteFile}>
-          <kbd style="margin-right: 0.5rem">←</kbd> Delete
+          <Kbd>←</Kbd>
+          Delete
         </Button>
 
         {#if actionHistory.length > 0}
-          <Button variant="ghost" on:click={undo}>Undo</Button>
+          <Button variant="outline" on:click={undo}>
+            Undo
+            <Kbd>⌘Z</Kbd>
+          </Button>
         {/if}
 
-        <Button variant="success" on:click={keepFile}>
-          Keep <kbd style="margin-left: 0.5rem">→</kbd>
+        <Button variant="primary" on:click={keepFile}>
+          Keep
+          <Kbd>→</Kbd>
         </Button>
       </div>
     {/if}
@@ -197,8 +199,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 1rem 1.5rem;
-    max-width: 600px;
+    padding: 16px 24px;
+    max-width: 560px;
     margin: 0 auto;
     width: 100%;
   }
@@ -207,42 +209,51 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 12px;
   }
 
-  .progress-text {
-    font-size: 0.75rem;
+  .progress {
+    font-size: 12px;
     color: var(--text-muted);
     font-family: var(--font-mono);
   }
 
-  .stats-inline {
+  .stats {
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
   }
 
-  .file-info-header {
+  .stat-sep {
+    color: var(--border-color);
+  }
+
+  .file-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 1rem;
+    padding: 10px 12px;
     border-bottom: 1px solid var(--border-color);
-    background: var(--bg-primary);
+    background: var(--bg-tertiary);
   }
 
   .file-name {
-    font-size: 0.875rem;
+    font-size: 13px;
     font-weight: 500;
     color: var(--text-primary);
     word-break: break-all;
     flex: 1;
-    margin-right: 1rem;
+    margin-right: 12px;
+    font-family: var(--font-mono);
   }
 
   .file-meta {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
   }
 
   .preview-container {
@@ -253,14 +264,14 @@
     min-height: 180px;
     max-height: 280px;
     overflow: hidden;
+    background: var(--bg-primary);
   }
 
   .actions {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Spread them out or keep centered? minimalistic usually groups them. Let's keep centered but with more gap */
     justify-content: center;
-    margin-top: 1.5rem;
-    gap: 1rem;
+    margin-top: 16px;
+    gap: 12px;
   }
 </style>

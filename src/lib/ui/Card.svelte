@@ -8,10 +8,9 @@
 
 <style>
     .card {
-        background-color: white;
+        background-color: var(--bg-secondary);
         border: 1px solid var(--border-color);
-        border-radius: 12px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); /* Subtle shadow */
+        border-radius: var(--radius-lg);
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -22,14 +21,14 @@
     }
 
     .padding-sm {
-        padding: 0.75rem;
+        padding: 12px;
     }
 
     .padding-md {
-        padding: 1.5rem;
+        padding: 16px;
     }
 
     .padding-lg {
-        padding: 2rem;
+        padding: 24px;
     }
 </style>

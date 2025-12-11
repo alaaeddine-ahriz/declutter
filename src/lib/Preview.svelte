@@ -28,7 +28,7 @@
           maxBytes: 2000,
         });
       } catch (e) {
-        error = "Could not load text preview";
+        error = "Could not load preview";
       }
     }
 
@@ -60,8 +60,7 @@
     {#if error}
       <div class="fallback"><span>{error}</span></div>
     {:else}
-      <pre
-        class="text-preview">{textContent}{#if textContent.length >= 2000}...{/if}</pre>
+      <pre class="text-preview">{textContent}{#if textContent.length >= 2000}...{/if}</pre>
     {/if}
   {:else}
     <div class="fallback">
@@ -88,11 +87,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    /* padding: 1rem; -- Removed padding to let image fill the box */
-    overflow: hidden; /* Changed from auto to hidden for cleaner look with images */
+    overflow: hidden;
   }
 
-  /* ... */
+  .loading {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
 
   .image-preview {
     width: 100%;
@@ -104,9 +105,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: 12px;
   }
 
   .text-preview {
@@ -114,12 +115,14 @@
     height: 100%;
     overflow: auto;
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    line-height: 1.5;
+    font-size: 11px;
+    line-height: 1.6;
     color: var(--text-secondary);
     white-space: pre-wrap;
     word-wrap: break-word;
     text-align: left;
     margin: 0;
+    padding: 12px;
+    background: var(--bg-primary);
   }
 </style>

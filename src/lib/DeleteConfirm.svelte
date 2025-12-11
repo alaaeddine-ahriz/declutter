@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount, onDestroy } from "svelte";
   import { invoke } from "@tauri-apps/api/tauri";
   import type { FileInfo, DeleteResult, TriageResult } from "../types";
   import Button from "./ui/Button.svelte";
   import Card from "./ui/Card.svelte";
+  import Kbd from "./ui/Kbd.svelte";
 
   export let filesToDelete: FileInfo[];
   export let keptCount: number;
@@ -16,9 +17,11 @@
 
   let isDeleting = false;
   let deleteError: string | null = null;
+  let removedCount = 0;
 
   function removeFromList(index: number) {
     filesToDelete = filesToDelete.filter((_, i) => i !== index);
+    removedCount++;
   }
 
   function formatSize(bytes: number): string {
@@ -35,7 +38,7 @@
   async function confirmDelete() {
     if (filesToDelete.length === 0) {
       dispatch("complete", {
-        kept: keptCount,
+        kept: keptCount + removedCount,
         deleted: 0,
         total: totalCount,
       });
@@ -60,7 +63,7 @@
       }
 
       dispatch("complete", {
-        kept: keptCount + (filesToDelete.length - result.success.length),
+        kept: keptCount + removedCount + result.failed.length,
         deleted: result.success.length,
         total: totalCount,
       });
@@ -73,15 +76,29 @@
   function handleCancel() {
     dispatch("cancel");
   }
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === "Enter" && !isDeleting) {
+      event.preventDefault();
+      confirmDelete();
+    }
+  }
+
+  onMount(() => {
+    window.addEventListener("keydown", handleKeydown);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener("keydown", handleKeydown);
+  });
 </script>
 
 <div class="delete-confirm">
   <div class="content">
     {#if filesToDelete.length > 0}
-      <h2 class="heading">Review Files to Delete</h2>
+      <h2 class="heading">Review deletions</h2>
       <p class="description">
-        {filesToDelete.length} file{filesToDelete.length !== 1 ? "s" : ""} selected
-        ({getTotalSize()})
+        {filesToDelete.length} file{filesToDelete.length !== 1 ? "s" : ""} · {getTotalSize()}
       </p>
     {/if}
 
@@ -99,17 +116,17 @@
                   <span class="file-name">{file.name}</span>
                   <span class="file-size">{formatSize(file.size)}</span>
                 </div>
-                <!-- Reuse Button but make it small/ghost/danger for removal -->
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <button
+                  class="remove-btn"
                   on:click={() => removeFromList(index)}
-                  title="Remove from delete list"
+                  title="Remove from list"
                   disabled={isDeleting}
-                  style="color: var(--text-muted); padding: 0.25rem; height: auto;"
                 >
-                  ✕
-                </Button>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
               </div>
             {/each}
           </div>
@@ -124,7 +141,7 @@
     {/if}
 
     <div class="actions">
-      <Button variant="secondary" on:click={handleCancel} disabled={isDeleting}>
+      <Button variant="outline" on:click={handleCancel} disabled={isDeleting}>
         Go Back
       </Button>
       <Button variant="danger" on:click={confirmDelete} disabled={isDeleting}>
@@ -132,10 +149,10 @@
           Deleting...
         {:else if filesToDelete.length === 0}
           Done
+          <Kbd>⏎</Kbd>
         {:else}
-          Delete {filesToDelete.length} File{filesToDelete.length !== 1
-            ? "s"
-            : ""}
+          Delete {filesToDelete.length}
+          <Kbd>⏎</Kbd>
         {/if}
       </Button>
     </div>
@@ -147,8 +164,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 1.5rem;
-    max-width: 600px;
+    padding: 24px;
+    max-width: 560px;
     margin: 0 auto;
     width: 100%;
   }
@@ -157,48 +174,115 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    justify-content: center; /* Center vertical content */
+    justify-content: center;
   }
 
   .heading {
-    font-size: 1.25rem;
+    font-size: 18px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
-    text-align: center; /* Center text */
+    margin-bottom: 4px;
+    text-align: center;
   }
 
   .description {
     color: var(--text-muted);
-    font-size: 0.8125rem;
-    margin-bottom: 0.5rem; /* Reduced from 2rem to 0.5rem for tighter layout */
-    text-align: center; /* Center text */
+    font-size: 13px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-family: var(--font-mono);
   }
 
   .empty-state {
-    /* flex: 1; -- Removed to prevent excessive spreading */
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
-    font-size: 1rem; /* Slightly larger as it is now the main focus when empty */
-    height: 150px; /* Fixed modest height instead of filling screen */
+    font-size: 14px;
+    height: 150px;
     width: 100%;
   }
 
-  .file-list {
-    flex: 1;
-    overflow-y: auto;
-    max-height: 400px;
-    text-align: left; /* Keep file list left-aligned for readability */
+  .file-list-container {
+    margin-bottom: 16px;
   }
 
-  /* ... file items ... */
+  .file-list {
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .file-item:last-child {
+    border-bottom: none;
+  }
+
+  .file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .file-name {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-size {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+  }
+
+  .remove-btn:hover:not(:disabled) {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+  }
+
+  .remove-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .error-message {
+    color: var(--accent-text);
+    font-size: 13px;
+    background: var(--accent-subtle);
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    white-space: pre-line;
+    font-family: var(--font-mono);
+  }
 
   .actions {
     display: flex;
-    gap: 0.75rem;
-    margin-top: 1rem; /* Reduced from 1.5rem to 1rem */
-    justify-content: center; /* Center buttons */
+    gap: 12px;
+    justify-content: center;
   }
 </style>
