@@ -79,23 +79,14 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-/* Scrollbar styling */
+/* Hide scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Selection */
