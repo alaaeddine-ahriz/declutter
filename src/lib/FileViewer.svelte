@@ -273,7 +273,9 @@
                 <span>Viewing in preview</span>
               </div>
             {:else}
-              <Preview file={currentFile} />
+              {#key currentFile.path}
+                <Preview file={currentFile} />
+              {/key}
             {/if}
             {#if !previewOpen}
               <div class="preview-hint">

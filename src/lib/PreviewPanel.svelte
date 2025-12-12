@@ -19,7 +19,8 @@
   let error = "";
   let imageError = false;
 
-  $: assetUrl = file ? convertFileSrc(file.path) : "";
+  // Add timestamp to bust browser cache when re-opening same file
+  $: assetUrl = file ? convertFileSrc(file.path) + `?t=${Date.now()}` : "";
 
   $: if (file && isOpen) {
     loadPreview();
@@ -56,7 +57,8 @@
   function formatSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    if (bytes < 1024 * 1024 * 1024)
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
   }
 
@@ -67,12 +69,17 @@
 </script>
 
 {#if isOpen && file}
-  <div class="preview-panel" transition:fly={{ x: 400, duration: 250, opacity: 1 }}>
+  <div
+    class="preview-panel"
+    transition:fly={{ x: 400, duration: 250, opacity: 1 }}
+  >
     <div class="panel-header">
       <div class="header-info">
         <span class="panel-title">Preview</span>
         {#if file}
-          <Badge variant="neutral">{getFileExtension(file.name) || file.file_type}</Badge>
+          <Badge variant="neutral"
+            >{getFileExtension(file.name) || file.file_type}</Badge
+          >
         {/if}
       </div>
       <Button variant="ghost" size="sm" on:click={close}>
@@ -97,7 +104,14 @@
         {:else if file.file_type === "image"}
           {#if imageError}
             <div class="fallback">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                 <circle cx="8.5" cy="8.5" r="1.5" />
                 <polyline points="21 15 16 10 5 21" />
@@ -105,44 +119,74 @@
               <span>Could not load image</span>
             </div>
           {:else}
-            <img 
-              src={assetUrl} 
-              alt={file.name} 
-              class="image-preview" 
+            <img
+              src={assetUrl}
+              alt={file.name}
+              class="image-preview"
               on:error={handleImageError}
             />
           {/if}
         {:else if file.file_type === "pdf"}
-          <object
-            data={assetUrl}
-            type="application/pdf"
-            class="pdf-preview"
-            title={file.name}
-          >
-            <div class="fallback">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
-              <span>PDF preview not available</span>
-            </div>
-          </object>
+          {#key file.path}
+            <object
+              data={assetUrl}
+              type="application/pdf"
+              class="pdf-preview"
+              title={file.name}
+            >
+              <div class="fallback">
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                <span>PDF preview not available</span>
+              </div>
+            </object>
+          {/key}
         {:else if file.file_type === "text"}
           {#if error}
             <div class="fallback">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
                 <polyline points="14 2 14 8 20 8" />
               </svg>
               <span>{error}</span>
             </div>
           {:else}
-            <pre class="text-preview">{textContent}{#if textContent.length >= 10000}...{/if}</pre>
+            <pre
+              class="text-preview">{textContent}{#if textContent.length >= 10000}...{/if}</pre>
           {/if}
         {:else}
           <div class="fallback">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
               <polyline points="14 2 14 8 20 8" />
             </svg>
             <span>No preview available</span>
@@ -282,4 +326,3 @@
     opacity: 0.5;
   }
 </style>
-

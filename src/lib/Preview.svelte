@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/tauri";
   import { convertFileSrc } from "@tauri-apps/api/tauri";
   import type { FileInfo } from "../types";
@@ -8,9 +7,10 @@
 
   let textContent = "";
   let isLoading = true;
+  let imageLoading = true;
   let error = "";
 
-  $: assetUrl = convertFileSrc(file.path);
+  $: assetUrl = convertFileSrc(file.path) + `?t=${Date.now()}`;
 
   $: if (file) {
     loadPreview();
@@ -18,6 +18,7 @@
 
   async function loadPreview() {
     isLoading = true;
+    imageLoading = true; // Reset image loading state
     error = "";
     textContent = "";
 
@@ -34,13 +35,52 @@
 
     isLoading = false;
   }
+
+  function handleImageLoad() {
+    imageLoading = false;
+  }
+
+  function handleImageError() {
+    imageLoading = false;
+    error = "Could not load image";
+  }
 </script>
 
 <div class="preview">
   {#if isLoading}
     <div class="loading">Loading...</div>
   {:else if file.file_type === "image"}
-    <img src={assetUrl} alt={file.name} class="image-preview" />
+    <div class="image-container">
+      {#if imageLoading}
+        <div class="loading">Loading image...</div>
+      {/if}
+      <img
+        src={assetUrl}
+        alt={file.name}
+        class="image-preview"
+        class:hidden={imageLoading}
+        on:load={handleImageLoad}
+        on:error={handleImageError}
+      />
+    </div>
+    {#if error}
+      <div class="fallback">
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        <span>{error}</span>
+      </div>
+    {/if}
   {:else if file.file_type === "pdf"}
     <div class="fallback">
       <svg
@@ -60,7 +100,8 @@
     {#if error}
       <div class="fallback"><span>{error}</span></div>
     {:else}
-      <pre class="text-preview">{textContent}{#if textContent.length >= 2000}...{/if}</pre>
+      <pre
+        class="text-preview">{textContent}{#if textContent.length >= 2000}...{/if}</pre>
     {/if}
   {:else}
     <div class="fallback">
@@ -95,10 +136,23 @@
     font-size: 13px;
   }
 
+  .image-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
   .image-preview {
     width: 100%;
     height: 100%;
     object-fit: contain;
+  }
+
+  .hidden {
+    display: none;
   }
 
   .fallback {
