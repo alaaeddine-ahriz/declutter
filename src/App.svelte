@@ -5,6 +5,7 @@
   import FileViewer from "./lib/FileViewer.svelte";
   import DeleteConfirm from "./lib/DeleteConfirm.svelte";
   import Summary from "./lib/Summary.svelte";
+  import Settings from "./lib/Settings.svelte";
   import PreviewPanel from "./lib/PreviewPanel.svelte";
   import Button from "./lib/ui/Button.svelte";
   import Kbd from "./lib/ui/Kbd.svelte";
@@ -16,7 +17,11 @@
   let actionHistory: Action[] = [];
   let result: TriageResult = { kept: 0, deleted: 0, total: 0 };
   let filesToDelete: FileInfo[] = [];
+
   let keptCount: number = 0;
+
+  // Track previous state to return to from settings
+  let previousState: AppState = "idle";
 
   // Preview panel state
   let previewOpen: boolean = false;
@@ -75,7 +80,17 @@
 
   function closePreview() {
     previewOpen = false;
+    previewOpen = false;
     previewFile = null;
+  }
+
+  function openSettings() {
+    previousState = appState;
+    appState = "settings";
+  }
+
+  function closeSettings() {
+    appState = previousState;
   }
 
   function truncatePath(path: string, maxLength: number = 50): string {
@@ -90,9 +105,20 @@
       event.preventDefault();
       if (previewOpen) {
         closePreview();
-      } else if (appState !== "idle") {
+      } else if (appState !== "idle" && appState !== "settings") {
         handleStartOver();
+      } else if (appState === "settings") {
+        closeSettings();
       }
+    } else if (
+      event.key === "s" &&
+      appState === "idle" &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
+      event.preventDefault();
+      openSettings();
     }
   }
 
@@ -139,7 +165,16 @@
 
   <div class="content">
     {#if appState === "idle"}
-      <FolderSelect on:folderSelected={handleFolderSelected} />
+      <div class="idle-container">
+        <FolderSelect on:folderSelected={handleFolderSelected} />
+        <div class="settings-link">
+          <Button variant="ghost" size="sm" on:click={openSettings}
+            >Settings <Kbd>S</Kbd></Button
+          >
+        </div>
+      </div>
+    {:else if appState === "settings"}
+      <Settings on:back={closeSettings} />
     {:else if appState === "triaging"}
       <FileViewer
         {files}
@@ -215,5 +250,27 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+  }
+
+  .idle-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .settings-link {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+
+  .settings-link:hover {
+    opacity: 1;
   }
 </style>
