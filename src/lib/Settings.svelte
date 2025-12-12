@@ -1,16 +1,12 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount, onDestroy } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { settings, formatKeyCombo } from "./stores/settings";
-    import type { KeyCombo, Settings } from "../types";
+    import type { KeyCombo, Settings, TriageMode } from "../types";
     import Button from "./ui/Button.svelte";
     import Kbd from "./ui/Kbd.svelte";
+    import Badge from "./ui/Badge.svelte";
 
-    const dispatch = createEventDispatcher();
     let recordingKey: keyof Settings["keybindings"] | null = null;
-
-    function startRecording(key: keyof Settings["keybindings"]) {
-        recordingKey = key;
-    }
 
     function stopRecording() {
         recordingKey = null;
@@ -22,7 +18,13 @@
     }
 
     function handleKeydown(event: KeyboardEvent) {
-        if (!recordingKey) return;
+        if (!recordingKey) {
+            if (event.key === "R" && event.shiftKey) {
+                event.preventDefault();
+                handleReset();
+            }
+            return;
+        }
 
         event.preventDefault();
         event.stopPropagation();
@@ -49,13 +51,67 @@
         stopRecording();
     }
 
-    function handleBack() {
-        dispatch("back");
-    }
-
     function handleReset() {
         settings.reset();
     }
+
+    function handleModeChange(mode: TriageMode) {
+        settings.setMode(mode);
+    }
+
+    $: displayedKeybindings =
+        $settings.mode === "classic"
+            ? [
+                  {
+                      action: "keep",
+                      label: "Keep",
+                      combo: $settings.keybindings.keep,
+                  },
+                  {
+                      action: "delete",
+                      label: "Delete",
+                      combo: $settings.keybindings.delete,
+                  },
+                  {
+                      action: "undo",
+                      label: "Undo",
+                      combo: $settings.keybindings.undo,
+                  },
+                  {
+                      action: "preview",
+                      label: "Preview",
+                      combo: $settings.keybindings.preview,
+                  },
+              ]
+            : [
+                  {
+                      action: "exploreNext",
+                      label: "Next",
+                      combo: $settings.keybindings.exploreNext,
+                  },
+                  {
+                      action: "explorePrevious",
+                      label: "Previous",
+                      combo: $settings.keybindings.explorePrevious,
+                  },
+                  {
+                      action: "exploreDelete",
+                      label: "Delete",
+                      combo: $settings.keybindings.exploreDelete,
+                  },
+                  {
+                      action: "preview",
+                      label: "Preview",
+                      combo: $settings.keybindings.preview,
+                  },
+              ];
+
+    const modeDescription = {
+        classic:
+            "Quickly sort files by keeping or deleting. Ideal for fast cleanup.",
+        explore:
+            "Navigate freely and explicitly mark delete. Good for reviewing content.",
+    };
 
     onMount(() => {
         window.addEventListener("keydown", handleKeydown);
@@ -69,20 +125,54 @@
 <div class="settings-page">
     <div class="content">
         <div class="section">
+            <h1>Settings</h1>
+            <h2>Mode</h2>
+            <div class="mode-selector">
+                <button
+                    class="mode-option"
+                    class:selected={$settings.mode === "classic"}
+                    on:click={() => handleModeChange("classic")}
+                >
+                    <div class="mode-header">
+                        <span class="mode-title">Classic Triage</span>
+                        {#if $settings.mode === "classic"}<Badge
+                                variant="accent">Active</Badge
+                            >{/if}
+                    </div>
+                    <p class="mode-desc">{modeDescription.classic}</p>
+                </button>
+
+                <button
+                    class="mode-option"
+                    class:selected={$settings.mode === "explore"}
+                    on:click={() => handleModeChange("explore")}
+                >
+                    <div class="mode-header">
+                        <span class="mode-title">Explore Mode</span>
+                        {#if $settings.mode === "explore"}<Badge
+                                variant="accent">Active</Badge
+                            >{/if}
+                    </div>
+                    <p class="mode-desc">{modeDescription.explore}</p>
+                </button>
+            </div>
+        </div>
+
+        <div class="section keybindings-section">
             <h2>Keybindings</h2>
             <p class="description">
                 Click on a keybinding to record a new one. Press <Kbd>Esc</Kbd> to
-                cancel recording.
+                cancel recording. Bindings are auto-saved.
             </p>
 
             <div class="key-list">
-                {#each Object.entries($settings.keybindings) as [action, combo]}
+                {#each displayedKeybindings as { action, label, combo }}
                     <button
                         class="key-item"
                         class:recording={recordingKey === action}
                         on:click={() => startRecordingAction(action)}
                     >
-                        <span class="action-name">{action}</span>
+                        <span class="action-name">{label}</span>
                         <div class="key-display">
                             {#if recordingKey === action}
                                 <span class="recording-text">Press keys...</span
@@ -97,7 +187,7 @@
 
             <div class="actions">
                 <Button variant="outline" on:click={handleReset}
-                    >Reset to Defaults</Button
+                    >Reset to Defaults <Kbd>⇧ + R</Kbd></Button
                 >
             </div>
         </div>
@@ -146,6 +236,11 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
+    }
+
+    .keybindings-section {
+        gap: 8px; /* Reduce gap between title and description */
+        margin-top: 16px; /* Add extra spacing before this section */
     }
 
     h2 {
@@ -212,6 +307,63 @@
     .recording-text {
         font-size: 13px;
         font-weight: 500;
+    }
+
+    .mode-selector {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .mode-option {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        text-align: left;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .mode-option:hover {
+        border-color: var(--border-hover);
+        background: var(--bg-tertiary);
+    }
+
+    .mode-option.selected {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .mode-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .mode-title {
+        font-weight: 500;
+        font-size: 15px;
+    }
+
+    .mode-desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .group-header {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-top: 16px;
+        margin-bottom: 8px;
     }
 
     .actions {

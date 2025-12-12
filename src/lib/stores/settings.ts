@@ -2,11 +2,17 @@ import { writable } from 'svelte/store';
 import type { Settings, KeyCombo } from '../../types';
 
 const DEFAULT_SETTINGS: Settings = {
+    mode: 'classic',
     keybindings: {
         keep: { key: 'ArrowRight', modifiers: { ctrl: false, alt: false, meta: false, shift: false } },
         delete: { key: 'ArrowLeft', modifiers: { ctrl: false, alt: false, meta: false, shift: false } },
         undo: { key: 'z', modifiers: { ctrl: false, alt: false, meta: true, shift: false } },
         preview: { key: ' ', modifiers: { ctrl: false, alt: false, meta: false, shift: false } }, // ' ' is space
+
+        // Explore mode
+        exploreNext: { key: 'ArrowRight', modifiers: { ctrl: false, alt: false, meta: false, shift: false } },
+        explorePrevious: { key: 'ArrowLeft', modifiers: { ctrl: false, alt: false, meta: false, shift: false } },
+        exploreDelete: { key: 'Backspace', modifiers: { ctrl: false, alt: false, meta: false, shift: false } },
     },
 };
 
@@ -46,6 +52,13 @@ function createSettingsStore() {
                         [action]: combo,
                     },
                 };
+                saveSettings(newSettings);
+                return newSettings;
+            });
+        },
+        setMode: (mode: Settings['mode']) => {
+            update((settings) => {
+                const newSettings = { ...settings, mode };
                 saveSettings(newSettings);
                 return newSettings;
             });

@@ -45,11 +45,18 @@ export interface KeyCombo {
   };
 }
 
+export type TriageMode = 'classic' | 'explore';
+
 export interface Settings {
+  mode: TriageMode;
   keybindings: {
     keep: KeyCombo;
     delete: KeyCombo;
     undo: KeyCombo;
     preview: KeyCombo;
+    // Explore mode bindings
+    exploreNext: KeyCombo;
+    explorePrevious: KeyCombo;
+    exploreDelete: KeyCombo; // Toggle mark for delete
   };
 }

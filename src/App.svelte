@@ -105,11 +105,20 @@
       event.preventDefault();
       if (previewOpen) {
         closePreview();
-      } else if (appState !== "idle") {
+      } else if (appState !== "idle" && appState !== "settings") {
         handleStartOver();
       } else if (appState === "settings") {
         closeSettings();
       }
+    } else if (
+      event.key === "s" &&
+      appState === "idle" &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
+      event.preventDefault();
+      openSettings();
     }
   }
 
@@ -160,7 +169,7 @@
         <FolderSelect on:folderSelected={handleFolderSelected} />
         <div class="settings-link">
           <Button variant="ghost" size="sm" on:click={openSettings}
-            >Settings</Button
+            >Settings <Kbd>S</Kbd></Button
           >
         </div>
       </div>
