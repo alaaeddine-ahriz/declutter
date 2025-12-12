@@ -13,7 +13,7 @@ export interface FileMetadata {
   extension: string;
 }
 
-export type AppState = "idle" | "triaging" | "confirming" | "complete";
+export type AppState = "idle" | "triaging" | "confirming" | "complete" | "settings";
 
 export interface Action {
   type: "keep" | "delete";
@@ -34,3 +34,22 @@ export interface DeleteResult {
 }
 
 
+
+export interface KeyCombo {
+  key: string;
+  modifiers: {
+    ctrl: boolean;
+    alt: boolean;
+    meta: boolean;
+    shift: boolean;
+  };
+}
+
+export interface Settings {
+  keybindings: {
+    keep: KeyCombo;
+    delete: KeyCombo;
+    undo: KeyCombo;
+    preview: KeyCombo;
+  };
+}

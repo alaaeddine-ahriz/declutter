@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
+  import { settings, checkKeyCombo } from "./stores/settings";
   import { invoke } from "@tauri-apps/api/tauri";
   import type { FileInfo, Action } from "../types";
   import Preview from "./Preview.svelte";
@@ -104,16 +105,16 @@
   }
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "ArrowRight") {
+    if (checkKeyCombo(event, $settings.keybindings.keep)) {
       event.preventDefault();
       keepFile();
-    } else if (event.key === "ArrowLeft") {
+    } else if (checkKeyCombo(event, $settings.keybindings.delete)) {
       event.preventDefault();
       deleteFile();
-    } else if ((event.metaKey || event.ctrlKey) && event.key === "z") {
+    } else if (checkKeyCombo(event, $settings.keybindings.undo)) {
       event.preventDefault();
       undo();
-    } else if (event.key === " ") {
+    } else if (checkKeyCombo(event, $settings.keybindings.preview)) {
       event.preventDefault();
       openPreview();
     }
