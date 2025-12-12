@@ -191,6 +191,27 @@
                 >
             </div>
         </div>
+
+        <div class="section advanced-section">
+            <h2>Advanced</h2>
+            <div class="toggle-row">
+                <div class="toggle-info">
+                    <span class="toggle-label">Include Folders</span>
+                    <p class="toggle-desc">
+                        Allow triaging and deleting folders in addition to
+                        files. Folders will be moved to trash.
+                    </p>
+                </div>
+                <label class="toggle-switch">
+                    <input
+                        type="checkbox"
+                        checked={$settings.includeFolders}
+                        on:change={() => settings.toggleIncludeFolders()}
+                    />
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -367,8 +388,95 @@
     }
 
     .actions {
-        margin-top: 24px;
+        margin-top: 12px;
         display: flex;
         justify-content: flex-end;
+    }
+
+    .advanced-section {
+        margin-top: 24px;
+    }
+
+    .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+    }
+
+    .toggle-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+    }
+
+    .toggle-label {
+        font-weight: 500;
+        font-size: 15px;
+    }
+
+    .toggle-desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-subtle);
+        transition: all var(--transition-fast);
+        border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 2px;
+        bottom: 2px;
+        background-color: var(--text-muted);
+        transition: all var(--transition-fast);
+        border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(20px);
+        background-color: white;
+    }
+
+    .toggle-switch input:focus + .toggle-slider {
+        box-shadow: 0 0 0 2px var(--primary-alpha);
     }
 </style>

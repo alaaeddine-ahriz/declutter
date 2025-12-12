@@ -36,6 +36,9 @@
     return formatSize(total);
   }
 
+  $: folderCount = filesToDelete.filter((f) => f.is_directory).length;
+  $: fileCount = filesToDelete.filter((f) => !f.is_directory).length;
+
   function handleMainAction() {
     if (filesToDelete.length === 0) {
       dispatch("complete", {
@@ -131,12 +134,23 @@
       <div class="confirmation-view">
         <h2 class="heading">Are you sure?</h2>
         <p class="description">
-          This will move {filesToDelete.length} file{filesToDelete.length !== 1
-            ? "s"
-            : ""} to the trash.
+          This will move
+          {#if fileCount > 0}{fileCount} file{fileCount !== 1 ? "s" : ""}{/if}
+          {#if fileCount > 0 && folderCount > 0}
+            and
+          {/if}
+          {#if folderCount > 0}{folderCount} folder{folderCount !== 1
+              ? "s"
+              : ""}{/if}
+          to the trash.
           <br />
           You can restore them later if needed.
         </p>
+        {#if folderCount > 0}
+          <div class="folder-warning">
+            <span>Folders and all their contents will be moved to trash.</span>
+          </div>
+        {/if}
 
         <div class="actions">
           <Button
@@ -165,7 +179,13 @@
       {#if filesToDelete.length > 0}
         <h2 class="heading">Review deletions</h2>
         <p class="description">
-          {filesToDelete.length} file{filesToDelete.length !== 1 ? "s" : ""} · {getTotalSize()}
+          {#if fileCount > 0}{fileCount} file{fileCount !== 1 ? "s" : ""}{/if}
+          {#if fileCount > 0 && folderCount > 0},
+          {/if}
+          {#if folderCount > 0}{folderCount} folder{folderCount !== 1
+              ? "s"
+              : ""}{/if}
+          · {getTotalSize()}
         </p>
       {/if}
 
@@ -362,5 +382,22 @@
     display: flex;
     gap: 12px;
     justify-content: center;
+  }
+
+  .folder-warning {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    border-radius: var(--radius-md);
+
+    /* Match danger button hover state */
+    background-color: #371520;
+    border: 1px solid #5c2333;
+    color: #fca5a5;
   }
 </style>

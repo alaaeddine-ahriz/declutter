@@ -228,6 +228,21 @@
       >
         <Card padding="none">
           <div class="file-header">
+            {#if currentFile.is_directory}
+              <svg
+                class="type-icon folder-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                ></path>
+              </svg>
+            {/if}
             <span class="file-name">{currentFile.name}</span>
             <div class="file-meta">
               <Button
@@ -429,6 +444,16 @@
     padding: 10px 12px;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-tertiary);
+  }
+
+  .type-icon {
+    flex-shrink: 0;
+    margin-right: 8px;
+    color: var(--text-muted);
+  }
+
+  .folder-icon {
+    color: var(--primary);
   }
 
   .file-name {

@@ -3,6 +3,7 @@ import type { Settings, KeyCombo } from '../../types';
 
 const DEFAULT_SETTINGS: Settings = {
     mode: 'classic',
+    includeFolders: false,
     keybindings: {
         keep: { key: 'ArrowRight', modifiers: { ctrl: false, alt: false, meta: false, shift: false } },
         delete: { key: 'ArrowLeft', modifiers: { ctrl: false, alt: false, meta: false, shift: false } },
@@ -26,6 +27,7 @@ function loadSettings(): Settings {
             const parsed = JSON.parse(stored);
             return {
                 ...DEFAULT_SETTINGS,
+                ...parsed,
                 keybindings: {
                     ...DEFAULT_SETTINGS.keybindings,
                     ...parsed.keybindings,
@@ -66,7 +68,14 @@ function createSettingsStore() {
         reset: () => {
             set(DEFAULT_SETTINGS);
             saveSettings(DEFAULT_SETTINGS);
-        }
+        },
+        toggleIncludeFolders: () => {
+            update((settings) => {
+                const newSettings = { ...settings, includeFolders: !settings.includeFolders };
+                saveSettings(newSettings);
+                return newSettings;
+            });
+        },
     };
 }
 

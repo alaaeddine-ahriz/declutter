@@ -1,8 +1,16 @@
 export interface FileInfo {
   path: string;
   name: string;
-  file_type: "image" | "pdf" | "text" | "other";
+  file_type: "image" | "pdf" | "text" | "folder" | "other";
   size: number;
+  is_directory: boolean;
+}
+
+export interface DirectoryNode {
+  name: string;
+  is_directory: boolean;
+  size: number;
+  children?: DirectoryNode[];
 }
 
 export interface FileMetadata {
@@ -49,6 +57,7 @@ export type TriageMode = 'classic' | 'explore';
 
 export interface Settings {
   mode: TriageMode;
+  includeFolders: boolean;
   keybindings: {
     keep: KeyCombo;
     delete: KeyCombo;

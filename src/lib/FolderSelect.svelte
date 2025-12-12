@@ -2,6 +2,7 @@
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
   import { invoke } from "@tauri-apps/api/tauri";
   import type { FileInfo } from "../types";
+  import { settings } from "./stores/settings";
   import Button from "./ui/Button.svelte";
   import Kbd from "./ui/Kbd.svelte";
 
@@ -22,10 +23,13 @@
       if (path) {
         const files = await invoke<FileInfo[]>("list_files", {
           folderPath: path,
+          includeFolders: $settings.includeFolders,
         });
 
         if (files.length === 0) {
-          error = "No files found in this folder.";
+          error = $settings.includeFolders
+            ? "No files or folders found in this directory."
+            : "No files found in this folder.";
         } else {
           dispatch("folderSelected", { path, files });
         }
